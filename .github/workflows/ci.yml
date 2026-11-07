@@ -101,10 +101,6 @@ jobs:
 
           cat << 'EOF' > module_stub.cpp
           extern "C" {
-            void* __attribute__((used)) sceShaccCgInitialize(...) { return 0; }
-            void* __attribute__((used)) sceShaccCgCompileProgram(...) { return 0; }
-            void* __attribute__((used)) sceShaccCgGetShader(...) { return 0; }
-            void* __attribute__((used)) sceShaccCgDestroy(...) { return 0; }
             void* __dso_handle = (void*) &__dso_handle;
             void _free_vita_newlib() {}
           }
