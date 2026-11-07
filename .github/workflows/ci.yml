@@ -24,6 +24,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        
+      - name: Patch missing include (Host)
+        run: sed -i.bak '1s/^/#include <array>\n/' src/backend/shader_profiles.cpp || sed -i '' '1s/^/#include <array>\n/' src/backend/shader_profiles.cpp
+
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build
@@ -37,6 +41,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Patch missing include (macOS Frontend)
+        run: sed -i '' '1s/^/#include <array>\n/' src/backend/shader_profiles.cpp
+
       - name: Install SPIR-V frontend dependencies
         run: brew install glslang spirv-tools spirv-cross
       - name: Configure
@@ -68,6 +76,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Patch missing include (Vita Target)
+        run: sed -i '1s/^/#include <array>\n/' src/backend/shader_profiles.cpp
 
       - name: Configure for Vita
         run: |
