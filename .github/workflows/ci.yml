@@ -91,20 +91,19 @@ jobs:
         run: |
           cd build-vita
           
-          echo "libshacccg:" > exports.txt
-          echo "  version: 1" >> exports.txt
-          echo "  functions:" >> exports.txt
-          echo "    - sceShaccCgInitialize" >> exports.txt
-          echo "    - sceShaccCgCompileProgram" >> exports.txt
-          echo "    - sceShaccCgGetShader" >> exports.txt
-          echo "    - sceShaccCgDestroy" >> exports.txt
+          echo "libshacccg:" > exports.yml
+          echo "  version: 1" >> exports.yml
+          echo "  functions:" >> exports.yml
+          echo "    - sceShaccCgInitialize" >> exports.yml
+          echo "    - sceShaccCgCompileProgram" >> exports.yml
+          echo "    - sceShaccCgGetShader" >> exports.yml
+          echo "    - sceShaccCgDestroy" >> exports.yml
 
           echo 'int main() { return 0; }' > dummy_main.cpp
 
           arm-vita-eabi-g++ -Wl,-q dummy_main.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -o open-shacccg.elf
-          vita-elf-create open-shacccg.elf open-shacccg.velf
-          vita-prx-gen -e exports.txt open-shacccg.velf open-shacccg.prx
-          vita-make-fself open-shacccg.prx libshacccg.suprx
+          vita-elf-create -e exports.yml open-shacccg.elf open-shacccg.velf
+          vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
         uses: actions/upload-artifact@v4
