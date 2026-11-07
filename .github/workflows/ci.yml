@@ -93,18 +93,10 @@ jobs:
         run: |
           cd build-vita
           
-          echo "libshacccg:" > exports.yml
-          echo "  version: 1" >> exports.yml
-          echo "  functions:" >> exports.yml
-          echo "    - sceShaccCgInitialize" >> exports.yml
-          echo "    - sceShaccCgCompileProgram" >> exports.yml
-          echo "    - sceShaccCgGetShader" >> exports.yml
-          echo "    - sceShaccCgDestroy" >> exports.yml
-
           echo 'void* __dso_handle = (void*) &__dso_handle; extern "C" void _free_vita_newlib() {} int main() { return 0; }' > dummy_main.cpp
 
           arm-vita-eabi-g++ -fPIC -nostartfiles -Wl,-q dummy_main.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
-          vita-elf-create -n -e exports.yml open-shacccg.elf open-shacccg.velf
+          vita-elf-create open-shacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
