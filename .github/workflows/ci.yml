@@ -91,13 +91,18 @@ jobs:
         run: |
           cd build-vita
           
-          echo "libshacccg:" > exports.txt
-          echo "  version: 1" >> exports.txt
-          echo "  functions:" >> exports.txt
-          echo "    - sceShaccCgInitialize" >> exports.txt
-          echo "    - sceShaccCgCompileProgram" >> exports.txt
-          echo "    - sceShaccCgGetShader" >> exports.txt
-          echo "    - sceShaccCgDestroy" >> exports.txt
+          echo "module_name: libshacccg" > exports.yml
+          echo "attributes: 0x0000" >> exports.yml
+          echo "version: 1" >> exports.yml
+          echo "exports:" >> exports.yml
+          echo "  - libshacccg" >> exports.yml
+          echo "libshacccg:" >> exports.yml
+          echo "  version: 1" >> exports.yml
+          echo "  functions:" >> exports.yml
+          echo "    - sceShaccCgInitialize" >> exports.yml
+          echo "    - sceShaccCgCompileProgram" >> exports.yml
+          echo "    - sceShaccCgGetShader" >> exports.yml
+          echo "    - sceShaccCgDestroy" >> exports.yml
 
           cat << 'EOF' > module_stub.cpp
           extern "C" {
@@ -108,7 +113,7 @@ jobs:
           EOF
 
           arm-vita-eabi-g++ -O2 -fPIC -nostartfiles -Wl,-q module_stub.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
-          vita-elf-create -n -e exports.txt open-shacccg.elf open-shacccg.velf
+          vita-elf-create -n -e exports.yml open-shacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
