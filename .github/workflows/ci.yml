@@ -96,13 +96,31 @@ jobs:
         run: |
           cd build-vita
           
-          cat << 'EOF' > exports.txt
-          libshacccg 0x00000000
-          sceShaccCgInitialize 0x1A2B3C4D
-          sceShaccCgCompileProgram 0x2B3C4D5E
-          sceShaccCgGetShader 0x3C4D5E6F
-          sceShaccCgDestroy 0x4D5E6F7A
+          cat << 'EOF' > exports.json
+          {
+            "modules": [
+              {
+                "name": "libshacccg",
+                "attributes": "0x0000",
+                "version": { "major": 1, "minor": 1 },
+                "libraries": [
+                  {
+                    "name": "libshacccg",
+                    "version": 1,
+                    "functions": [
+                      "sceShaccCgInitialize",
+                      "sceShaccCgCompileProgram",
+                      "sceShaccCgGetShader",
+                      "sceShaccCgDestroy"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
           EOF
+          
+          vita-json-create exports.json exports.yml
 
           cat << 'EOF' > module_stub.cpp
           #include <psp2/types.h>
@@ -124,9 +142,8 @@ jobs:
           EOF
 
           arm-vita-eabi-g++ -O2 -fPIC -nostartfiles -Wl,-q -Wl,--no-enum-size-warning module_stub.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
-          vita-elf-create -n open-shacccg.elf open-shacccg.velf
-          vita-prx-gen -c exports.txt open-shacccg.velf open-shacccg.prx
-          vita-make-fself open-shacccg.prx libshacccg.suprx
+          vita-elf-create -e exports.yml open-shacccg.elf open-shacccg.velf
+          vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
         uses: actions/upload-artifact@v4
