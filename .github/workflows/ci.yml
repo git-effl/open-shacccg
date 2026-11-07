@@ -103,10 +103,6 @@ jobs:
             functions:
               - module_start
               - module_stop
-              - sceShaccCgInitialize
-              - sceShaccCgCompileProgram
-              - sceShaccCgGetShader
-              - sceShaccCgDestroy
           EOF
 
           cat << 'EOF' > module_stub.cpp
@@ -129,7 +125,7 @@ jobs:
           EOF
 
           arm-vita-eabi-g++ -O2 -fPIC -nostartfiles -Wl,-q -Wl,--no-enum-size-warning module_stub.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
-          vita-elf-create -e exports.yml open-shacccg.elf open-shacccg.velf
+          vita-elf-create -n -e exports.yml open-shacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
