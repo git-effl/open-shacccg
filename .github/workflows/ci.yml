@@ -101,7 +101,7 @@ jobs:
           echo "    - sceShaccCgGetShader" >> exports.yml
           echo "    - sceShaccCgDestroy" >> exports.yml
 
-          arm-vita-eabi-g++ -shared -Wl,-q -Wl,-unresolved-symbols=ignore-in-shared-libs -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -o libshacccg.elf
+          arm-vita-eabi-g++ -shared -Wl,-inkernel -Wl,-q -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -o libshacccg.elf
           vita-elf-create -e exports.yml libshacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
