@@ -96,12 +96,22 @@ jobs:
         run: |
           cd build-vita
           
+          cat << 'EOF' > exports.yml
+          libshacccg:
+            attributes: 0x0000
+            version: 1
+            functions:
+              - module_start
+              - module_stop
+              - sceShaccCgInitialize
+              - sceShaccCgCompileProgram
+              - sceShaccCgGetShader
+              - sceShaccCgDestroy
+          EOF
+
           cat << 'EOF' > module_stub.cpp
           #include <psp2/types.h>
           #include <psp2/kernel/modulemgr.h>
-          #include <psp2/kernel/sysmem.h>
-          
-          SCE_MODULE_INFO("libshacccg", 0, 1, 1);
           
           extern "C" {
             void* __dso_handle = (void*) &__dso_handle;
@@ -119,7 +129,7 @@ jobs:
           EOF
 
           arm-vita-eabi-g++ -O2 -fPIC -nostartfiles -Wl,-q -Wl,--no-enum-size-warning module_stub.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
-          vita-elf-create open-shacccg.elf open-shacccg.velf
+          vita-elf-create -e exports.yml open-shacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
