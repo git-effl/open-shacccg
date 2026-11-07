@@ -101,14 +101,16 @@ jobs:
           #include <psp2/kernel/modulemgr.h>
           
           extern "C" {
+            SCE_MODULE_INFO("libshacccg", 0, 1, 1);
+            
             void* __dso_handle = (void*) &__dso_handle;
             void _free_vita_newlib() {}
             
-            __declspec(dllexport) int module_start(SceSize argc, const void *args) {
+            __attribute__((visibility("default"))) int module_start(SceSize argc, const void *args) {
               return SCE_KERNEL_START_SUCCESS;
             }
             
-            __declspec(dllexport) int module_stop(SceSize argc, const void *args) {
+            __attribute__((visibility("default"))) int module_stop(SceSize argc, const void *args) {
               return SCE_KERNEL_STOP_SUCCESS;
             }
           }
@@ -126,3 +128,4 @@ jobs:
           path: |
             build-vita/libshacccg.suprx
           if-no-files-found: error
+0
