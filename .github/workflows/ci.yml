@@ -76,27 +76,32 @@ jobs:
       - name: Patch missing include (Vita Target)
         run: sed -i '1s/^/#include <array>\n/' src/backend/shader_profiles.cpp
 
-      - name: Fix symbol mangling in headers and source
+      - name: Patch CMAKE to enforce Vita SUPRX compilation
         run: |
-          find src -name "*.h" -exec sed -i '1s/^/extern "C" {\n/' {} \; -exec sh -c 'echo "}" >> {}' \; || true
-          sed -i '1s/^/extern "C" {\n/' src/abi/sce_shacccg.cpp
-          echo "}" >> src/abi/sce_shacccg.cpp
+          sed -i 's/add_library(shacccg STATIC/add_library(shacccg MODULE/g' CMakeLists.txt || true
+          sed -i 's/add_library(shacccg/add_library(shacccg MODULE/g' CMakeLists.txt || true
+          cat << 'EOF' >> CMakeLists.txt
+          if(VITASDK)
+            target_link_options(shacccg PRIVATE -Wl,-q -nostartfiles -shared)
+          endif()
+          EOF
 
       - name: Configure for Vita
         run: |
           cmake -S . -B build-vita \
             -DCMAKE_TOOLCHAIN_FILE="$VITASDK/share/vita.toolchain.cmake" \
-            -DOPENSHACCG_BUILD_VITA_STATIC=ON \
+            -DOPENSHACCG_BUILD_VITA_STATIC=OFF \
             -DOPENSHACCG_BUILD_TESTS=OFF \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_FLAGS="-fPIC" \
+            -DCMAKE_C_FLAGS="-fPIC"
 
       - name: Build Vita Targets
         run: cmake --build build-vita --parallel
 
-      - name: Convert libshacccg.a to SUPRX Module
+      - name: Pack Module via Toolchain Utilities
         run: |
           cd build-vita
-          
           cat << 'EOF' > exports.yml
           libshacccg:
             attributes: 0x0000
@@ -107,21 +112,8 @@ jobs:
               - sceShaccCgGetShader
               - sceShaccCgDestroy
           EOF
-
-          cat << 'EOF' > module_stub.cpp
-          extern "C" {
-            void __attribute__((used)) sceShaccCgInitialize();
-            void __attribute__((used)) sceShaccCgCompileProgram();
-            void __attribute__((used)) sceShaccCgGetShader();
-            void __attribute__((used)) sceShaccCgDestroy();
-            void* __dso_handle = (void*) &__dso_handle;
-            void _free_vita_newlib() {}
-          }
-          int main() { return 0; }
-          EOF
-
-          arm-vita-eabi-g++ -O2 -fPIC -nostartfiles -Wl,-q module_stub.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
-          vita-elf-create -n -s -e exports.yml open-shacccg.elf open-shacccg.velf
+          TARGET_FILE=$(find . -name "libshacccg.so" -o -name "libshacccg.elf" -o -name "shacccg.elf" -o -name "libshacccg.a" | head -n 1)
+          vita-elf-create -n -e exports.yml "$TARGET_FILE" open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
