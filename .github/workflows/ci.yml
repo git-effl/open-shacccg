@@ -87,11 +87,11 @@ jobs:
       - name: Build Vita Targets
         run: cmake --build build-vita --parallel
 
-      - name: Manual SUPRX Generation from Real Targets
+      - name: Convert libshacccg.a to SUPRX Module
         run: |
           cd build-vita
           
-          echo "libopenshacccg_abi:" > exports.yml
+          echo "libshacccg:" > exports.yml
           echo "  version: 1" >> exports.yml
           echo "  functions:" >> exports.yml
           echo "    - sceShaccCgInitialize" >> exports.yml
@@ -99,7 +99,7 @@ jobs:
           echo "    - sceShaccCgGetShader" >> exports.yml
           echo "    - sceShaccCgDestroy" >> exports.yml
 
-          vita-elf-create -g exports.yml openshacccg_compile open-shacccg.velf
+          vita-elf-create -g exports.yml libshacccg.a open-shacccg.velf
           vita-prx-gen open-shacccg.velf open-shacccg.prx
           vita-make-fself open-shacccg.prx libshacccg.suprx
 
