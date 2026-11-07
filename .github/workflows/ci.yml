@@ -99,7 +99,9 @@ jobs:
           echo "    - sceShaccCgGetShader" >> exports.txt
           echo "    - sceShaccCgDestroy" >> exports.txt
 
-          arm-vita-eabi-gcc -Wl,--stubify -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -o open-shacccg.elf
+          echo 'int main() { return 0; }' > dummy_main.cpp
+
+          arm-vita-eabi-g++ -Wl,-q dummy_main.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -o open-shacccg.elf
           vita-elf-create open-shacccg.elf open-shacccg.velf
           vita-prx-gen -e exports.txt open-shacccg.velf open-shacccg.prx
           vita-make-fself open-shacccg.prx libshacccg.suprx
