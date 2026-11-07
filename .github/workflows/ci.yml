@@ -14,7 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Your existing jobs remain here...
   host:
     name: Host ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -61,7 +60,6 @@ jobs:
             build-full/bin/
           if-no-files-found: warn
 
-  # NEW JOB: Cross-compiling for PS Vita target
   vitasdk-build:
     name: PS Vita Build
     runs-on: ubuntu-latest
@@ -74,26 +72,21 @@ jobs:
       - name: Configure for Vita
         run: |
           cmake -S . -B build-vita \
-            -DCMAKE_TOOLCHAIN_FILE=${VITASDK}/share/cmake/vitasdk.cmake \
+            -DCMAKE_TOOLCHAIN_FILE="$VITASDK/share/vita.toolchain.cmake" \
+            -DOPENSHACCG_BUILD_VITA_STATIC=ON \
+            -DOPENSHACCG_BUILD_TESTS=OFF \
             -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build Static Libraries
+      - name: Build Vita Targets
         run: cmake --build build-vita --parallel
 
-      - name: Create PRX and SUPRX
-        run: |
-          cd build-vita
-          # 1. Link the compiled static objects into a .velf (Vita ELF file)
-          vita-elf-create -g libopenshacccg_abi.a libopenshacccg_core.a open-shacccg.velf
-          
-          # 2. Convert the VELF to a PRX
-          vita-prx-gen open-shacccg.velf open-shacccg.prx
-          
-          # 3. Strip and compress into the final .suprx system module
-          skbpack open-shacccg.prx libopenshacccg.suprx
-
-      - name: Upload Vita Module
+      - name: Upload Vita Module Binaries
         uses: actions/upload-artifact@v4
         with:
-          name: open-shacccg-vita-suprx
-          path: build-vita/libopenshacccg.suprx
+          name: open-shacccg-vita-modules
+          path: |
+            build-vita/**/*.suprx
+            build-vita/**/*.skprx
+            build-vita/**/*.velf
+            build-vita/**/*.a
+          if-no-files-found: warn
