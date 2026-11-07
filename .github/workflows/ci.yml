@@ -101,9 +101,7 @@ jobs:
           echo "    - sceShaccCgGetShader" >> exports.yml
           echo "    - sceShaccCgDestroy" >> exports.yml
 
-          echo 'void* __dso_handle = (void*) &__dso_handle; extern "C" void _free_vita_newlib() {} int main() { return 0; }' > dummy_main.cpp
-
-          arm-vita-eabi-g++ -fPIC -shared -nostartfiles -nodefaultlibs dummy_main.cpp -Wl,-q -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lgcc -o libshacccg.elf
+          arm-vita-eabi-g++ -fPIC -r -nostdlib -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -o libshacccg.elf
           vita-elf-create -n -e exports.yml libshacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
