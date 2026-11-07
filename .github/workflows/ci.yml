@@ -76,6 +76,11 @@ jobs:
       - name: Patch missing include (Vita Target)
         run: sed -i '1s/^/#include <array>\n/' src/backend/shader_profiles.cpp
 
+      - name: Patch ABI with extern C for clean symbols
+        run: |
+          sed -i '1s/^/extern "C" {\n/' src/abi/sce_shacccg.cpp
+          echo "}" >> src/abi/sce_shacccg.cpp
+
       - name: Configure for Vita
         run: |
           cmake -S . -B build-vita \
@@ -102,7 +107,7 @@ jobs:
               - sceShaccCgDestroy
           EOF
 
-          cat << 'EOF' > module_bridge.cpp
+          cat << 'EOF' > module_stub.cpp
           extern "C" {
             void __attribute__((used)) sceShaccCgInitialize();
             void __attribute__((used)) sceShaccCgCompileProgram();
@@ -114,8 +119,8 @@ jobs:
           int main() { return 0; }
           EOF
 
-          arm-vita-eabi-g++ -O2 -fPIC -nostartfiles -Wl,-q module_bridge.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
-          vita-elf-create -n -e exports.yml open-shacccg.elf open-shacccg.velf
+          arm-vita-eabi-g++ -O2 -fPIC -nostartfiles -Wl,-q module_stub.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
+          vita-elf-create -e exports.yml open-shacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
