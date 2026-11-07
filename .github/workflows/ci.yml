@@ -108,7 +108,7 @@ jobs:
           EOF
 
           arm-vita-eabi-g++ -O2 -fPIC -nostartfiles -Wl,-q module_stub.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
-          vita-elf-create -e exports.txt open-shacccg.elf open-shacccg.velf
+          vita-elf-create -n -e exports.txt open-shacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
