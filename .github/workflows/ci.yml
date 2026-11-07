@@ -88,11 +88,9 @@ jobs:
           
           cat << 'EOF' >> CMakeLists.txt
           if(VITASDK)
-            add_library(shacccg_suprx SHARED src/abi/sce_shacccg.cpp)
-            target_link_libraries(shacccg_suprx PRIVATE shacccg)
-            vita-elf-create(shacccg_suprx_velf shacccg_suprx "${CMAKE_CURRENT_BINARY_DIR}/exports.txt")
-            vita-make-fself("${CMAKE_CURRENT_BINARY_DIR}/libshacccg.suprx" shacccg_suprx_velf)
-            add_custom_target(build_suprx ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/libshacccg.suprx")
+            add_library(libshacccg SHARED src/abi/sce_shacccg.cpp)
+            target_link_libraries(libshacccg PRIVATE shacccg)
+            vita_create_suprx(libshacccg "${CMAKE_CURRENT_SOURCE_DIR}/exports.txt")
           endif()
           EOF
 
