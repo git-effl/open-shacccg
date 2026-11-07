@@ -100,17 +100,18 @@ jobs:
           echo "    - sceShaccCgDestroy" >> exports.txt
 
           cat << 'EOF' > module_stub.cpp
-          #include <vitasdk.h>
           extern "C" {
-            void __attribute__((used)) sceShaccCgInitialize() {}
-            void __attribute__((used)) sceShaccCgCompileProgram() {}
-            void __attribute__((used)) sceShaccCgGetShader() {}
-            void __attribute__((used)) sceShaccCgDestroy() {}
+            void* __attribute__((used)) sceShaccCgInitialize(...) { return 0; }
+            void* __attribute__((used)) sceShaccCgCompileProgram(...) { return 0; }
+            void* __attribute__((used)) sceShaccCgGetShader(...) { return 0; }
+            void* __attribute__((used)) sceShaccCgDestroy(...) { return 0; }
+            void* __dso_handle = (void*) &__dso_handle;
+            void _free_vita_newlib() {}
           }
           int main() { return 0; }
           EOF
 
-          arm-vita-eabi-g++ -O2 -Wl,-q module_stub.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -o open-shacccg.elf
+          arm-vita-eabi-g++ -O2 -fPIC -nostartfiles -Wl,-q module_stub.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -lstdc++ -lm -lc -lgcc -o open-shacccg.elf
           vita-elf-create -e exports.txt open-shacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
