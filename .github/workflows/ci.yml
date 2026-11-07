@@ -97,9 +97,20 @@ jobs:
           cd build-vita
           
           cat << 'EOF' > module_stub.cpp
+          #include <psp2/types.h>
+          #include <psp2/kernel/modulemgr.h>
+          
           extern "C" {
             void* __dso_handle = (void*) &__dso_handle;
             void _free_vita_newlib() {}
+            
+            __declspec(dllexport) int module_start(SceSize argc, const void *args) {
+              return SCE_KERNEL_START_SUCCESS;
+            }
+            
+            __declspec(dllexport) int module_stop(SceSize argc, const void *args) {
+              return SCE_KERNEL_STOP_SUCCESS;
+            }
           }
           int main() { return 0; }
           EOF
