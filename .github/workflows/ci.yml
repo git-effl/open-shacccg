@@ -102,7 +102,7 @@ jobs:
           echo 'int main() { return 0; }' > dummy_main.cpp
 
           arm-vita-eabi-g++ -Wl,-q dummy_main.cpp -Wl,--whole-archive libshacccg.a -Wl,--no-whole-archive -o open-shacccg.elf
-          vita-elf-create -e exports.yml open-shacccg.elf open-shacccg.velf
+          vita-elf-create -n -e exports.yml open-shacccg.elf open-shacccg.velf
           vita-make-fself open-shacccg.velf libshacccg.suprx
 
       - name: Upload Vita Module Binaries
