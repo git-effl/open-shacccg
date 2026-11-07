@@ -14,6 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Your existing jobs remain here...
   host:
     name: Host ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -21,31 +22,24 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-
       - name: Build
         run: cmake --build build --config Release --parallel
-
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
 
   full-frontend:
     name: Full frontend (macOS)
     runs-on: macos-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Install SPIR-V frontend dependencies
         run: brew install glslang spirv-tools spirv-cross
-
       - name: Configure
         run: >-
           cmake -S . -B build-full
@@ -53,13 +47,10 @@ jobs:
           -DOPENSHACCG_ENABLE_GLSLANG=ON
           -DOPENSHACCG_ENABLE_SPIRV_TOOLS=ON
           -DOPENSHACCG_ENABLE_SPIRV_CROSS=ON
-
       - name: Build
         run: cmake --build build-full --config Release --parallel
-
       - name: Test
         run: ctest --test-dir build-full -C Release --output-on-failure
-        
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -69,3 +60,40 @@ jobs:
             build-full/**/*.a
             build-full/bin/
           if-no-files-found: warn
+
+  # NEW JOB: Cross-compiling for PS Vita target
+  vitasdk-build:
+    name: PS Vita Build
+    runs-on: ubuntu-latest
+    container: vitasdk/vitasdk:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure for Vita
+        run: |
+          cmake -S . -B build-vita \
+            -DCMAKE_TOOLCHAIN_FILE=${VITASDK}/share/cmake/vitasdk.cmake \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Static Libraries
+        run: cmake --build build-vita --parallel
+
+      - name: Create PRX and SUPRX
+        run: |
+          cd build-vita
+          # 1. Link the compiled static objects into a .velf (Vita ELF file)
+          vita-elf-create -g libopenshacccg_abi.a libopenshacccg_core.a open-shacccg.velf
+          
+          # 2. Convert the VELF to a PRX
+          vita-prx-gen open-shacccg.velf open-shacccg.prx
+          
+          # 3. Strip and compress into the final .suprx system module
+          skbpack open-shacccg.prx libopenshacccg.suprx
+
+      - name: Upload Vita Module
+        uses: actions/upload-artifact@v4
+        with:
+          name: open-shacccg-vita-suprx
+          path: build-vita/libopenshacccg.suprx
