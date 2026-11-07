@@ -283,6 +283,7 @@ The Vita target is a normal static library rather than a SUPRX. Cross-compile it
 with VitaSDK:
 
 ```sh
+sed -i '1s/^/#include <array>\n/' src/backend/shader_profiles.cpp
 cmake -S . -B build-vita \
   -DCMAKE_TOOLCHAIN_FILE="$VITASDK/share/vita.toolchain.cmake" \
   -DOPENSHACCG_BUILD_VITA_STATIC=ON \
