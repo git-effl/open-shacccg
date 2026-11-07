@@ -99,10 +99,11 @@ jobs:
           cat << 'EOF' > module_stub.cpp
           #include <psp2/types.h>
           #include <psp2/kernel/modulemgr.h>
+          #include <psp2/kernel/sysmem.h>
+          
+          SCE_MODULE_INFO("libshacccg", 0, 1, 1);
           
           extern "C" {
-            SCE_MODULE_INFO("libshacccg", 0, 1, 1);
-            
             void* __dso_handle = (void*) &__dso_handle;
             void _free_vita_newlib() {}
             
@@ -128,4 +129,3 @@ jobs:
           path: |
             build-vita/libshacccg.suprx
           if-no-files-found: error
-
