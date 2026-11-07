@@ -76,45 +76,32 @@ jobs:
       - name: Patch missing include (Vita Target)
         run: sed -i '1s/^/#include <array>\n/' src/backend/shader_profiles.cpp
 
-      - name: Force Shared Library Target
-        run: |
-          sed -i 's/add_library(shacccg STATIC/add_library(shacccg SHARED/g' CMakeLists.txt || true
-          sed -i 's/add_library(shacccg/add_library(shacccg SHARED/g' CMakeLists.txt || true
-
       - name: Configure for Vita
         run: |
           cmake -S . -B build-vita \
             -DCMAKE_TOOLCHAIN_FILE="$VITASDK/share/vita.toolchain.cmake" \
-            -DBUILD_SHARED_LIBS=ON \
-            -DOPENSHACCG_BUILD_VITA_STATIC=OFF \
+            -DOPENSHACCG_BUILD_VITA_STATIC=ON \
             -DOPENSHACCG_BUILD_TESTS=OFF \
             -DCMAKE_BUILD_TYPE=Release
 
       - name: Build Vita Targets
         run: cmake --build build-vita --parallel
 
-      - name: Package Dynamic Module
+      - name: Manual SUPRX Generation from Real Targets
         run: |
           cd build-vita
-          if [ -f "libshacccg.suprx" ]; then
-            echo "suprx built natively by CMake"
-          elif [ -f "shacccg.suprx" ]; then
-            mv shacccg.suprx libshacccg.suprx
-          else
-            echo "libshacccg:" > exports.txt
-            echo "  version: 1" >> exports.txt
-            echo "  functions:" >> exports.txt
-            echo "    - sceShaccCgInitialize" >> exports.txt
-            echo "    - sceShaccCgCompileProgram" >> exports.txt
-            echo "    - sceShaccCgGetShader" >> exports.txt
-            echo "    - sceShaccCgDestroy" >> exports.txt
-            TARGET_ELF=$(find . -name "*.elf" | head -n 1)
-            if [ ! -z "$TARGET_ELF" ]; then
-              vita-elf-create "$TARGET_ELF" open-shacccg.velf
-              vita-prx-gen -e exports.txt open-shacccg.velf open-shacccg.prx
-              vita-make-fself open-shacccg.prx libshacccg.suprx
-            fi
-          fi
+          
+          echo "libopenshacccg_abi:" > exports.yml
+          echo "  version: 1" >> exports.yml
+          echo "  functions:" >> exports.yml
+          echo "    - sceShaccCgInitialize" >> exports.yml
+          echo "    - sceShaccCgCompileProgram" >> exports.yml
+          echo "    - sceShaccCgGetShader" >> exports.yml
+          echo "    - sceShaccCgDestroy" >> exports.yml
+
+          vita-elf-create -g exports.yml openshacccg_compile open-shacccg.velf
+          vita-prx-gen open-shacccg.velf open-shacccg.prx
+          vita-make-fself open-shacccg.prx libshacccg.suprx
 
       - name: Upload Vita Module Binaries
         uses: actions/upload-artifact@v4
