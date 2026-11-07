@@ -78,11 +78,8 @@ jobs:
 
       - name: Force Clean C Symbol Exports
         run: |
-          sed -i 's/SceShaccCgCompileOutput const \*sceShacccgCompileProgram/extern "C" __declspec(dllexport) SceShaccCgCompileOutput const \*sceShacccgCompileProgram/g' src/abi/sce_shacccg.cpp || true
-          sed -i 's/SceShaccCgCompileOutput const \*sceShaccCgCompileProgram/extern "C" __declspec(dllexport) SceShaccCgCompileOutput const \*sceShaccCgCompileProgram/g' src/abi/sce_shacccg.cpp || true
-          sed -i 's/int sceShaccCgInitialize/extern "C" __declspec(dllexport) int sceShaccCgInitialize/g' src/abi/sce_shacccg.cpp || true
-          sed -i 's/void sceShaccCgDestroy/extern "C" __declspec(dllexport) void sceShaccCgDestroy/g' src/abi/sce_shacccg.cpp || true
-          sed -i 's/void const \*sceShaccCgGetShader/extern "C" __declspec(dllexport) void const \*sceShaccCgGetShader/g' src/abi/sce_shacccg.cpp || true
+          sed -i '1s/^/#pragma GCC visibility push(default)\nextern "C" {\n/' src/abi/sce_shacccg.cpp
+          echo "}" >> src/abi/sce_shacccg.cpp
 
       - name: Configure for Vita
         run: |
