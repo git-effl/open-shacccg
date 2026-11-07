@@ -76,8 +76,9 @@ jobs:
       - name: Patch missing include (Vita Target)
         run: sed -i '1s/^/#include <array>\n/' src/backend/shader_profiles.cpp
 
-      - name: Patch ABI with extern C for clean symbols
+      - name: Fix symbol mangling in headers and source
         run: |
+          find src -name "*.h" -exec sed -i '1s/^/extern "C" {\n/' {} \; -exec sh -c 'echo "}" >> {}' \; || true
           sed -i '1s/^/extern "C" {\n/' src/abi/sce_shacccg.cpp
           echo "}" >> src/abi/sce_shacccg.cpp
 
